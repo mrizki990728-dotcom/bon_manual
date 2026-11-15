@@ -1,0 +1,2101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <script src="bridge.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Bon Manual Mobile - Bengkel Motor</title>
+    <style>
+        /* =========================================================
+           1. RESET & CSS VARIABLES (THEME, FONT, SPACING DEFAULTS)
+           ========================================================= */
+        :root {
+            /* Warna Dasar - Tema Terang (Default) */
+            --bg-color: #f8fafc;
+            --bg-dot: #e2e8f0;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --input-bg: #f8fafc;
+            --table-header-bg: #f1f5f9;
+            --summary-bg: #f8fafc;
+            
+            /* Warna Aksen (Default: Indigo) */
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-soft: #eef2ff;
+            --primary-border: #a5b4fc;
+
+            /* Warna Status */
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --success-color: #10b981;
+            --success-hover: #059669;
+            --bt-color: #0284c7;
+            --bt-hover: #0369a1;
+            --bt-bar-bg: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            --bt-bar-border: #bae6fd;
+            --bt-bar-text: #0369a1;
+
+            /* Pengaturan Dinamis: Ukuran Font & Kerapatan Baris */
+            --base-font-size: 16px;
+            --row-padding-y: 8px;
+            --card-padding-y: 14px;
+            --gap-size: 10px;
+            --print-width: 80mm;
+
+            --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        /* Tema Gelap (Dark Mode) */
+        [data-theme="dark"] {
+            --bg-color: #090d16;
+            --bg-dot: #1e293b;
+            --card-bg: #111827;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #1e293b;
+            --table-header-bg: #1e293b;
+            --summary-bg: #1e293b;
+            --primary-soft: rgba(99, 102, 241, 0.15);
+            --primary-border: #4f46e5;
+            --bt-bar-bg: linear-gradient(135deg, #0c4a6e 0%, #075985 100%);
+            --bt-bar-border: #0284c7;
+            --bt-bar-text: #e0f2fe;
+        }
+
+        /* Variasi Aksen Bengkel Motor */
+        [data-accent="racing-red"] {
+            --primary-color: #e11d48;
+            --primary-hover: #be123c;
+            --primary-soft: rgba(225, 29, 72, 0.12);
+            --primary-border: #fda4af;
+        }
+
+        [data-accent="sport-blue"] {
+            --primary-color: #0284c7;
+            --primary-hover: #0369a1;
+            --primary-soft: rgba(2, 132, 199, 0.12);
+            --primary-border: #7dd3fc;
+        }
+
+        [data-accent="mechanic-amber"] {
+            --primary-color: #d97706;
+            --primary-hover: #b45309;
+            --primary-soft: rgba(217, 119, 6, 0.12);
+            --primary-border: #fcd34d;
+        }
+
+        /* Skala Ukuran Tulisan */
+        [data-font-size="small"] { --base-font-size: 13.5px; }
+        [data-font-size="medium"] { --base-font-size: 16px; }
+        [data-font-size="large"] { --base-font-size: 18.5px; }
+
+        /* Skala Kerapatan Baris */
+        [data-density="compact"] {
+            --row-padding-y: 3px;
+            --card-padding-y: 8px;
+            --gap-size: 6px;
+        }
+        [data-density="normal"] {
+            --row-padding-y: 8px;
+            --card-padding-y: 14px;
+            --gap-size: 10px;
+        }
+        [data-density="spacious"] {
+            --row-padding-y: 13px;
+            --card-padding-y: 18px;
+            --gap-size: 14px;
+        }
+
+        html {
+            font-size: var(--base-font-size);
+            transition: font-size 0.2s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(var(--bg-dot) 1px, transparent 1px);
+            background-size: 16px 16px;
+            color: var(--text-color);
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        /* Container Utama */
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+            padding: 18px;
+            margin: 0 auto;
+            overflow: hidden;
+            position: relative;
+            perspective: 1200px;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
+
+        /* Navigation Header */
+        .nav-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 8px;
+        }
+
+        .btn-nav {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+                      color: var(--text-color);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-nav:active {
+            transform: scale(0.96);
+            border-color: var(--primary-color);
+        }
+
+        h1.app-title {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 800;
+            flex: 1;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        /* Views management with Dramatic & Fast 3D Esthetic Transition */
+        .view-section {
+            display: none;
+            transform-origin: center top;
+            will-change: transform, opacity, filter;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: pageDramaticIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .view-section.active.dir-back {
+            animation: pageDramaticBack 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .view-section.leaving {
+            display: block;
+            position: absolute;
+            top: 66px;
+            left: 18px;
+            right: 18px;
+            pointer-events: none;
+            animation: pageDramaticOut 0.24s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+        @keyframes pageDramaticIn {
+            0% {
+                opacity: 0;
+                transform: translateX(36px) scale(0.95) rotateY(-6deg);
+                filter: blur(4px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1) rotateY(0deg);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes pageDramaticBack {
+            0% {
+                opacity: 0;
+                transform: translateX(-36px) scale(0.95) rotateY(6deg);
+                filter: blur(4px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1) rotateY(0deg);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes pageDramaticOut {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.93) translateY(-10px);
+                filter: blur(3px);
+            }
+        }
+
+        /* Staggered child reveal untuk kesan mewah & dinamis */
+        .view-section.active > * {
+            animation: childStaggerRise 0.36s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+        }
+        .view-section.active > *:nth-child(1) { animation-delay: 0.02s; }
+        .view-section.active > *:nth-child(2) { animation-delay: 0.06s; }
+        .view-section.active > *:nth-child(3) { animation-delay: 0.10s; }
+        .view-section.active > *:nth-child(4) { animation-delay: 0.14s; }
+        .view-section.active > *:nth-child(5) { animation-delay: 0.18s; }
+
+        @keyframes childStaggerRise {
+            0% {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Status Bluetooth Indicator */
+        .bt-status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bt-bar-bg);
+            border: 1px solid var(--bt-bar-border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+            color: var(--bt-bar-text);
+        }
+
+        .bt-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #94a3b8;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .dot.connected {
+            background-color: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        /* =========================================================
+           HOME VIEW STYLES & KARAKTER KARTUN MONTIR ANIMASI LOOP
+           ========================================================= */
+        .mechanic-hero-banner {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: linear-gradient(135deg, var(--primary-soft) 0%, var(--input-bg) 100%);
+            border: 1px solid var(--primary-border);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .mechanic-svg-wrap {
+            width: 84px;
+            height: 84px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mechanic-speech {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .mechanic-speech-title {
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .mechanic-speech-desc {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+          }
+              /* Keyframes Animasi Loop Karakter Montir */
+        @keyframes mechBobbing {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+
+        @keyframes mechWrenchWave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-18deg); }
+            50% { transform: rotate(8deg); }
+            75% { transform: rotate(-14deg); }
+        }
+
+        @keyframes mechBlink {
+            0%, 46%, 50%, 96%, 100% { transform: scaleY(1); }
+            48%, 98% { transform: scaleY(0.1); }
+        }
+
+        @keyframes gearSpinLoop {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes sparkFloat {
+            0%, 100% { opacity: 0.2; transform: translateY(0) scale(0.8); }
+            50% { opacity: 1; transform: translateY(-6px) scale(1.15); }
+        }
+
+        .mech-body-anim {
+            animation: mechBobbing 2.2s ease-in-out infinite;
+            transform-origin: center bottom;
+        }
+
+        .mech-arm-wrench {
+            animation: mechWrenchWave 2.4s ease-in-out infinite;
+            transform-origin: 68px 56px;
+        }
+
+        .mech-eyes {
+            animation: mechBlink 4s infinite;
+            transform-origin: 48px 34px;
+        }
+
+        .bg-gear-spin {
+            animation: gearSpinLoop 9s linear infinite;
+            transform-origin: 20px 22px;
+        }
+
+        .spark-item {
+            animation: sparkFloat 1.8s ease-in-out infinite;
+        }
+
+        .home-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap-size);
+            margin-bottom: 16px;
+        }
+
+        .btn-create-new {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: white;
+            padding: 13px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .btn-create-new:active {
+            transform: scale(0.98);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        .bon-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap-size);
+            margin-top: 10px;
+        }
+
+        .bon-card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: var(--card-padding-y) 16px;
+            background: var(--card-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .bon-card:hover, .bon-card:active {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .bon-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .bon-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        .bon-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .bon-total {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--primary-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px 12px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* =========================================================
+           2. SECTION HEADER INFORMASI TOKO & PELANGGAN
+           ========================================================= */
+        .header-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap-size);
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 2px dashed var(--border-color);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background-color: var(--input-bg);
+            transition: all 0.2s ease;
+            color: var(--text-color);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        .row-two-col {
+            display: flex;
+            gap: var(--gap-size);
+        }
+
+        .row-two-col .form-group {
+            flex: 1;
+        }
+
+        /* =========================================================
+           3. TABEL ITEM BARANG (DENGAN KERAPATAN DINAMIS)
+           ========================================================= */
+        .items-section {
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+          }
+              .items-table th {
+            background-color: var(--table-header-bg);
+            text-align: left;
+            padding: 9px 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .items-table td {
+            padding: var(--row-padding-y) 4px;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+            transition: padding 0.2s ease;
+        }
+
+        .col-nama { width: 42%; }
+        .col-qty { width: 18%; }
+        .col-harga { width: 30%; }
+        .col-aksi { width: 10%; text-align: center; }
+
+        .items-table input {
+            width: 100%;
+            padding: calc(var(--row-padding-y) + 1px) 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .items-table input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--primary-soft);
+        }
+
+        .items-table input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .items-table input[type="number"]::-webkit-outer-spin-button,
+        .items-table input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .btn-delete {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 100%;
+            height: 34px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .btn-delete:active, .btn-delete:hover {
+            color: var(--danger-color);
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .btn-add {
+            background-color: var(--primary-soft);
+            color: var(--primary-color);
+            border: 1px dashed var(--primary-border);
+            padding: 10px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-add:active {
+            transform: scale(0.99);
+        }
+
+        /* =========================================================
+           4. RINGKASAN TOTAL
+           ========================================================= */
+        .summary-section {
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: var(--summary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .total-amount {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+        }
+
+        /* =========================================================
+           5. AKSI & TOMBOL UTAMA
+           ========================================================= */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-grid {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 8px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .btn-bluetooth {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        }
+        .btn-bluetooth:active { transform: scale(0.98); }
+
+        .btn-print {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        }
+        .btn-print:active { transform: scale(0.98); }
+
+        .btn-excel {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        .btn-excel:active { transform: scale(0.98); }
+
+        .btn-delete-bon {
+            background-color: transparent;
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            margin-top: 4px;
+            box-shadow: none;
+        }
+        .btn-delete-bon:active { background-color: rgba(239, 68, 68, 0.1); }
+
+        /* =========================================================
+           6. HALAMAN PENGATURAN (SETTINGS VIEW)
+           ========================================================= */
+        .settings-group {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .settings-group-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .option-pills {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .option-pills.two-col {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .pill-btn {
+            padding: 10px 8px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-color);
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .pill-btn.active {
+            border-color: var(--primary-color);
+            background: var(--primary-soft);
+            color: var(--primary-color);
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+
+        .accent-swatches {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .swatch-btn {
+            padding: 8px 6px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid var(--border-color);
+        }
+
+        .swatch-btn.active {
+            border-color: var(--primary-color);
+            background: var(--primary-soft);
+        }
+
+        .swatch-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Kotak Pratinjau Struk Bluetooth */
+        .receipt-preview-box {
+            background: #ffffff;
+            color: #000000;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
+            line-height: 1.3;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed #94a3b8;
+            white-space: pre;
+            overflow-x: auto;
+            margin-top: 8px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        /* Dialog Pesan / Alert Custom */
+        .custom-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            border: 1px solid #334155;
+        }
+
+        /* =========================================================
+           7. PRINT OPTIMIZATION (MEDIA QUERY UNTUK CETAK DOKUMEN)
+           ========================================================= */
+        @media print {
+            @page {
+                size: var(--print-width) auto;
+                margin: 0;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0;
+                margin: 0;
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 12px;
+            }
+
+            .app-container {
+                width: calc(var(--print-width) - 4mm);
+                              max-width: var(--print-width);
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+                padding: 4mm 2mm;
+                margin: 0 auto;
+                background: #ffffff !important;
+            }
+
+            .nav-header,
+            .bt-status-bar,
+            .paper-select-group,
+            .view-home,
+            .view-settings {
+                display: none !important;
+            }
+
+            .view-bon {
+                display: block !important;
+            }
+
+            .btn-add,
+            .btn-delete,
+            .action-buttons,
+            .col-aksi {
+                display: none !important;
+            }
+
+            .header-section {
+                border-bottom: 1px dashed #000;
+                padding-bottom: 8px;
+                margin-bottom: 8px;
+                gap: 4px;
+            }
+
+            .form-control {
+                border: none;
+                padding: 0;
+                font-family: inherit;
+                font-size: 12px;
+                font-weight: bold;
+                background: transparent !important;
+                color: #000 !important;
+            }
+
+            #storeName {
+                font-size: 16px;
+                text-align: center;
+                text-transform: uppercase;
+            }
+
+            .row-two-col {
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .form-group label {
+                font-size: 10px;
+                color: #000 !important;
+                display: inline;
+            }
+
+            .form-group {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+
+            .items-table {
+                margin-bottom: 8px;
+            }
+
+            .items-table th {
+                border-bottom: 1px dashed #000;
+                color: #000 !important;
+                background: transparent !important;
+                font-size: 11px;
+                padding: 4px 2px;
+            }
+
+            .items-table td {
+                border-bottom: none;
+                padding: 4px 2px;
+            }
+
+            .items-table input {
+                border: none;
+                padding: 0;
+                font-family: inherit;
+                font-size: 11px;
+                background: transparent !important;
+                color: #000 !important;
+            }
+
+            .items-table input.item-nama {
+                font-weight: bold;
+            }
+
+            .items-table input.item-qty,
+            .items-table input.item-harga {
+                text-align: right;
+            }
+
+            .summary-section {
+                border: none;
+                border-top: 1px dashed #000;
+                background: transparent !important;
+                color: #000 !important;
+                padding-top: 8px;
+                font-size: 13px;
+            }
+
+            .total-amount {
+                color: #000 !important;
+                font-size: 14px;
+            }
+
+            .print-footer {
+                display: block !important;
+                margin-top: 15px;
+                text-align: center;
+                font-size: 10px;
+                border-top: 1px dotted #000;
+                padding-top: 8px;
+            }
+        }
+
+        .print-footer {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header Navigasi -->
+        <div class="nav-header">
+            <button id="btnHome" type="button" class="btn-nav" onclick="showHomeView()" style="visibility: hidden;">
+                🏠 Home
+            </button>
+            <h1 class="app-title" id="appTitle">Daftar Bon</h1>
+            <button id="btnSettings" type="button" class="btn-nav" onclick="showSettingsView()">
+                ⚙️ Atur
+            </button>
+        </div>
+
+        <!-- Status Bluetooth -->
+        <div class="bt-status-bar">
+            <div class="bt-status-indicator">
+                <span id="btDot" class="dot"></span>
+                <span id="btStatusText">Bluetooth Terputus</span>
+            </div>
+            <button type="button" class="btn btn-bluetooth" style="padding: 6px 10px; font-size: 0.75rem; flex: none;" onclick="connectBluetooth()">
+                📲 Sambung Printer
+            </button>
+        </div>
+
+        <!-- =========================================================
+           VIEW 1: HALAMAN HOME (DAFTAR BON)
+           ========================================================= -->
+        <div id="viewHome" class="view-section view-home active">
+            <!-- Karakter Kartun Montir Animasi Loop -->
+            <div class="mechanic-hero-banner">
+                <div class="mechanic-svg-wrap">
+                    <svg viewBox="0 0 100 100" width="84" height="84" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Gear Latar Berputar -->
+                        <g class="bg-gear-spin" opacity="0.22">
+                            <circle cx="20" cy="22" r="9" fill="none" stroke="var(--primary-color)" stroke-width="3" stroke-dasharray="4 3"/>
+                            <circle cx="20" cy="22" r="4" fill="var(--primary-color)"/>
+                        </g>
+
+                        <!-- Kilauan Bintang Kecil -->
+                        <path class="spark-item" d="M84 16 L86 21 L91 23 L86 25 L84 30 L82 25 L77 23 L82 21 Z" fill="#f59e0b"/>
+
+                        <!-- Grup Karakter Kartun Montir -->
+                        <g class="mech-body-anim">
+                            <!-- Badan & Wearpack / Baju Montir -->
+                            <path d="M28 88 C28 68, 34 60, 48 60 C62 60, 68 68, 68 88 Z" fill="var(--primary-color)"/>
+                            <!-- Kaos Dalam Putih -->
+                            <path d="M41 60 L48 73 L55 60 Z" fill="#ffffff"/>
+                            <!-- Tali Wearpack & Kancing Kuning -->
+                            <rect x="36" y="61" width="4" height="27" rx="2" fill="#1e293b" opacity="0.35"/>
+                            <rect x="56" y="61" width="4" height="27" rx="2" fill="#1e293b" opacity="0.35"/>
+                            <circle cx="38" cy="70" r="1.8" fill="#fbbf24"/>
+                            <circle cx="58" cy="70" r="1.8" fill="#fbbf24"/>
+                            <!-- Kantong Dada -->
+                            <rect x="43" y="75" width="10" height="8" rx="2" fill="#1e293b" opacity="0.25"/>
+
+                            <!-- Leher -->
+                            <rect x="43" y="51" width="10" height="10" rx="4" fill="#fed7aa"/>
+
+                            <!-- Telinga -->
+                            <circle cx="31" cy="36" r="4.5" fill="#fdba74"/>
+                            <circle cx="65" cy="36" r="4.5" fill="#fdba74"/>
+
+                            <!-- Kepala Kartun -->
+                            <rect x="32" y="18" width="32" height="35" rx="15" fill="#fed7aa"/>
+
+                            <!-- Rambut Samping -->
+                            <path d="M32 29 C31 23, 35 20, 38 22 L35 31 Z" fill="#334155"/>
+                            <path d="M64 29 C65 23, 61 20, 58 22 L61 31 Z" fill="#334155"/>
+
+                            <!-- Topi Montir -->
+                            <path d="M31 24 C31 12, 65 12, 65 24 Z" fill="var(--primary-color)"/>
+                            <path d="M33 23 L66 23 C69 23, 70 26, 65 26 L33 26 Z" fill="#1e293b"/>
+                            <!-- Emblem Topi -->
+                            <circle cx="48" cy="17" r="3" fill="#fbbf24"/>
+
+                            <!-- Mata Berkedip -->
+                            <g class="mech-eyes">
+                                <circle cx="42" cy="34" r="2.6" fill="#0f172a"/>
+                                <circle cx="54" cy="34" r="2.6" fill="#0f172a"/>
+                                <circle cx="42.8" cy="33.2" r="0.9" fill="#ffffff"/>
+                                <circle cx="54.8" cy="33.2" r="0.9" fill="#ffffff"/>
+                            </g>
+
+                            <!-- Alis & Senyum Ramah -->
+                            <path d="M39 29.5 Q42 28 45 29.5" stroke="#334155" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                            <path d="M51 29.5 Q54 28 57 29.5" stroke="#334155" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                            <path d="M43 42 Q48 47 53 42" stroke="#9a3412" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            <!-- Pipi Merona -->
+                            <ellipse cx="38" cy="39" rx="2.5" ry="1.5" fill="#fb7185" opacity="0.45"/>
+                            <ellipse cx="58" cy="39" rx="2.5" ry="1.5" fill="#fb7185" opacity="0.45"/>
+
+                            <!-- Lengan Kiri Santai -->
+                            <path d="M29 66 C22 72, 23 82, 29 85" stroke="#fed7aa" stroke-width="7" stroke-linecap="round" fill="none"/>
+
+                            <!-- Lengan Kanan + Kunci Pas (Animasi Loop Mengayun) -->
+                            <g class="mech-arm-wrench">
+                                <!-- Kunci Pas Metalik -->
+                                <g transform="translate(73, 28) rotate(22)">
+                                    <rect x="3" y="8" width="5" height="24" rx="2" fill="#94a3b8" stroke="#475569" stroke-width="1"/>
+                                    <path d="M1 4 C1 0, 10 0, 10 4 L10 9 L7 9 L7 5 L4 5 L4 9 L1 9 Z" fill="#cbd5e1" stroke="#475569" stroke-width="1"/>
+                                </g>
+                                <!-- Lengan & Tangan -->
+                                <path d="M66 65 C74 63, 78 56, 77 48" stroke="#fed7aa" stroke-width="7" stroke-linecap="round" fill="none"/>
+                                <circle cx="77" cy="47" r="4.5" fill="#fdba74"/>
+                            </g>
+                        </g>
+                    </svg>
+                </div>
+                <div class="mechanic-speech">
+                    <div class="mechanic-speech-title">Halo, Juragan Bengkel! 👋</div>
+                    <div class="mechanic-speech-desc">Siap mencatat servis & sparepart motor hari ini. Klik tombol di bawah untuk buat nota baru!</div>
+                </div>
+            </div>
+
+            <div class="home-actions">
+                <button type="button" class="btn-create-new" onclick="createNewBon()">
+                    ➕ Tambah Bon Servis / Sparepart
+                </button>
+                <div class="search-box">
+                    <input type="text" id="searchBon" placeholder="🔍 Cari Pelanggan atau Plat Nomor..." oninput="renderBonList()">
+                </div>
+            </div>
+
+            <div id="bonListContainer" class="bon-list">
+                <!-- Daftar Bon Aktif -->
+            </div>
+        </div>
+
+        <!-- =========================================================
+           VIEW 2: HALAMAN EDITOR BON
+           ========================================================= -->
+        <div id="viewBon" class="view-section view-bon">
+            <div class="header-section">
+                <div class="form-group">
+                    <input type="text" id="storeName" class="form-control" value="JOYO PROKOSO MOTOR" placeholder="Nama Bengkel / Toko" oninput="saveCurrentBon()">
+                </div>
+                
+                <div class="row-two-col">
+                    <div class="form-group">
+                        <label for="billDate">Tanggal:</label>
+                        <input type="date" id="billDate" class="form-control" onchange="saveCurrentBon()">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerName">Pelanggan / Motor:</label>
+                        <input type="text" id="customerName" class="form-control" placeholder="Nama / Nopol (cth: Vario B 1234)" oninput="saveCurrentBon()">
+                    </div>
+                </div>
+
+                <div class="form-group paper-select-group">
+                    <label for="paperSize">Ukuran Kertas Printer:</label>
+                    <select id="paperSize" class="form-control" onchange="changePaperSize()">
+                        <option value="58mm">Thermal 58mm (Kecil - 32 Karakter)</option>
+                        <option value="80mm" selected>Thermal 80mm (Standar - 48 Karakter)</option>
+                        <option value="A4">A4 / Ukuran Standar (Sistem Printer HP)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tabel Item Barang -->
+            <div class="items-section">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th class="col-nama">Jasa / Sparepart</th>
+                            <th class="col-qty">Jml</th>
+                            <th class="col-harga">Harga</th>
+                            <th class="col-aksi"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemRowsContainer">
+                        <!-- Baris item dinamis -->
+                    </tbody>
+                </table>
+
+                <button type="button" class="btn-add" onclick="addNewRow()">+ Tambah Baris Item</button>
+            </div>
+
+            <!-- Total Pembayaran -->
+            <div class="summary-section">
+                <span>TOTAL BAYAR:</span>
+                <span id="grandTotal" class="total-amount">Rp 0</span>
+            </div>
+
+            <!-- Footer Struk khusus ketika di-print -->
+            <div class="print-footer">
+                <p>Terima Kasih Atas Kepercayaan Anda</p>
+                <p>*** Garansi Servis 7 Hari ***</p>
+            </div>
+
+            <!-- Tombol Aksi Utama -->
+            <div class="action-buttons">
+                <div class="btn-grid">
+                    <button type="button" class="btn btn-bluetooth" onclick="printDirectBluetooth()">
+                        🔵 Cetak Bluetooth
+                    </button>
+                    <button type="button" class="btn btn-print" onclick="window.print()">
+                        🖨️ Cetak Sistem
+                    </button>
+                </div>
+                <button type="button" class="btn btn-excel" onclick="exportToCSV()">
+                    📊 Ekspor Excel (CSV)
+                </button>
+                <button type="button" class="btn btn-delete-bon" onclick="deleteCurrentBon()">
+                    🗑️ Hapus Bon Ini
+                </button>
+            </div>
+        </div>
+
+        <!-- =========================================================
+           VIEW 3: HALAMAN PENGATURAN TAMPILAN & PRINT BLUETOOTH
+           ========================================================= -->
+        <div id="viewSettings" class="view-section view-settings">
+            
+            <!-- Grup 1: Tema Bengkel Motor -->
+            <div class="settings-group">
+                <div class="settings-group-title">🏍️ Tema & Warna Tampilan</div>
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Mode Pencahayaan:</label>
+                    <div class="option-pills two-col" id="themeModeGroup">
+                        <button type="button" class="pill-btn active" data-val="light" onclick="updateSetting('themeMode', 'light')">☀️ Mode Terang</button>
+                        <button type="button" class="pill-btn" data-val="dark" onclick="updateSetting('themeMode', 'dark')">🌙 Mode Gelap (Bengkel)</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Warna Aksen Motor:</label>
+                    <div class="accent-swatches" id="accentColorGroup">
+                        <button type="button" class="swatch-btn active" data-val="indigo" onclick="updateSetting('accentColor', 'indigo')">
+                            <span class="swatch-dot" style="background: #4f46e5;"></span>
+                            <span>Standar</span>
+                        </button>
+                        <button type="button" class="swatch-btn" data-val="racing-red" onclick="updateSetting('accentColor', 'racing-red')">
+                            <span class="swatch-dot" style="background: #e11d48;"></span>
+                            <span>Racing Red</span>
+                        </button>
+                        <button type="button" class="swatch-btn" data-val="sport-blue" onclick="updateSetting('accentColor', 'sport-blue')">
+                            <span class="swatch-dot" style="background: #0284c7;"></span>
+                            <span>Sport Blue</span>
+                        </button>
+                        <button type="button" class="swatch-btn" data-val="mechanic-amber" onclick="updateSetting('accentColor', 'mechanic-amber')">
+                            <span class="swatch-dot" style="background: #d97706;"></span>
+                            <span>Oli / Amber</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+                      <!-- Grup 2: Ukuran Tulisan & Kerapatan Baris -->
+            <div class="settings-group">
+                <div class="settings-group-title">📏 Ukuran Tulisan & Kerapatan</div>
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Besar Kecilnya Tulisan:</label>
+                    <div class="option-pills" id="fontSizeGroup">
+                        <button type="button" class="pill-btn" data-val="small" onclick="updateSetting('fontSize', 'small')">A- Kecil</button>
+                        <button type="button" class="pill-btn active" data-val="medium" onclick="updateSetting('fontSize', 'medium')">A Sedang</button>
+                        <button type="button" class="pill-btn" data-val="large" onclick="updateSetting('fontSize', 'large')">A+ Besar</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Kerapatan Antar Baris:</label>
+                    <div class="option-pills" id="rowDensityGroup">
+                        <button type="button" class="pill-btn" data-val="compact" onclick="updateSetting('rowDensity', 'compact')">Padat (Rapat)</button>
+                        <button type="button" class="pill-btn active" data-val="normal" onclick="updateSetting('rowDensity', 'normal')">Normal</button>
+                        <button type="button" class="pill-btn" data-val="spacious" onclick="updateSetting('rowDensity', 'spacious')">Lega (Renggang)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grup 3: Model Output Print Bluetooth -->
+            <div class="settings-group">
+                <div class="settings-group-title">🖨️ Model Output Struk Bluetooth</div>
+                
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Pilih Gaya Cetakan Struk:</label>
+                    <div class="option-pills" id="printStyleGroup">
+                        <button type="button" class="pill-btn active" data-val="classic" onclick="updateSetting('printStyle', 'classic')">Klasik (Standar)</button>
+                        <button type="button" class="pill-btn" data-val="modern" onclick="updateSetting('printStyle', 'modern')">Modern (Tegas)</button>
+                        <button type="button" class="pill-btn" data-val="compact" onclick="updateSetting('printStyle', 'compact')">Hemat Kertas</button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label for="receiptFooterText">Catatan Kaki Struk (Footer):</label>
+                    <input type="text" id="receiptFooterText" class="form-control" value="Terima Kasih - Utamakan Keselamatan" oninput="updateSetting('footerText', this.value)">
+                </div>
+
+                <div class="form-group">
+                    <label>Pratinjau Hasil Print Bluetooth:</label>
+                    <div id="receiptPreview" class="receipt-preview-box"></div>
+                </div>
+            </div>
+
+            <button type="button" class="btn-create-new" style="width: 100%; margin-top: 6px;" onclick="closeSettingsView()">
+                ✅ Simpan & Kembali
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="custom-toast"></div>
+
+    <!-- =========================================================
+       8. JAVASCRIPT LOGIC, SETTINGS, STATE & BLUETOOTH
+       ========================================================= -->
+    <script>
+        let bluetoothDevice = null;
+        let printCharacteristic = null;
+
+        // State Banyak Bon (Multi-Bon)
+        let activeBons = [];
+        let currentBonId = null;
+        let lastActiveView = 'viewHome';
+
+        // State Pengaturan Aplikasi (Disimpan di LocalStorage)
+        let appSettings = {
+            themeMode: 'light',       // 'light' | 'dark'
+            accentColor: 'indigo',    // 'indigo' | 'racing-red' | 'sport-blue' | 'mechanic-amber'
+            fontSize: 'medium',       // 'small' | 'medium' | 'large'
+            rowDensity: 'normal',     // 'compact' | 'normal' | 'spacious'
+            printStyle: 'classic',    // 'classic' | 'modern' | 'compact'
+            footerText: 'Terima Kasih - Utamakan Keselamatan'
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            applySettingsToUI();
+
+            // Inisialisasi data bon dari localStorage atau buat baru
+            const savedBons = localStorage.getItem('bon_motor_data');
+            if (savedBons) {
+                try {
+                    activeBons = JSON.parse(savedBons);
+                } catch (e) {
+                    activeBons = [];
+                }
+            }
+
+            if (activeBons.length === 0) {
+                createNewBon(false);
+            }
+
+            showHomeView();
+            changePaperSize();
+        });
+
+        /* =========================================================
+           MANAJEMEN PENGATURAN (THEME, FONT, KERAPATAN, GAYA PRINT)
+           ========================================================= */
+        function loadSettings() {
+            const saved = localStorage.getItem('bon_motor_settings');
+            if (saved) {
+                try {
+                    appSettings = { ...appSettings, ...JSON.parse(saved) };
+                } catch (e) {
+                    console.error("Gagal memuat pengaturan", e);
+                }
+            }
+        }
+
+        function saveSettings() {
+            localStorage.setItem('bon_motor_settings', JSON.stringify(appSettings));
+        }
+
+        function updateSetting(key, value) {
+            appSettings[key] = value;
+            saveSettings();
+            applySettingsToUI();
+            if (key === 'printStyle' || key === 'footerText') {
+                updateReceiptPreview();
+            }
+        }
+
+        function applySettingsToUI() {
+            const root = document.documentElement;
+            root.setAttribute('data-theme', appSettings.themeMode);
+            root.setAttribute('data-accent', appSettings.accentColor);
+            root.setAttribute('data-font-size', appSettings.fontSize);
+            root.setAttribute('data-density', appSettings.rowDensity);
+
+            // Update tombol aktif di menu pengaturan
+            updateActivePill('themeModeGroup', appSettings.themeMode);
+            updateActivePill('accentColorGroup', appSettings.accentColor);
+            updateActivePill('fontSizeGroup', appSettings.fontSize);
+            updateActivePill('rowDensityGroup', appSettings.rowDensity);
+            updateActivePill('printStyleGroup', appSettings.printStyle);
+
+            const footerInput = document.getElementById('receiptFooterText');
+            if (footerInput && footerInput.value !== appSettings.footerText) {
+                footerInput.value = appSettings.footerText;
+            }
+        }
+
+
+              function updateActivePill(containerId, activeVal) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const buttons = container.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('data-val') === activeVal) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        /* =========================================================
+           NAVIGASI ANTAR HALAMAN (DRAMATIS, ESTETIK & CEPAT)
+           ========================================================= */
+        const viewOrder = {
+            'viewHome': 1,
+            'viewBon': 2,
+            'viewSettings': 3
+        };
+        let currentActiveViewId = 'viewHome';
+
+        function switchView(toViewId, titleText, showHomeBtn, showSettingsBtn) {
+            const currentEl = document.getElementById(currentActiveViewId);
+            const targetEl = document.getElementById(toViewId);
+
+            if (!targetEl) return;
+
+            // Tentukan arah transisi (maju vs mundur)
+            const isGoingBack = (viewOrder[toViewId] || 1) < (viewOrder[currentActiveViewId] || 1);
+
+            // Animasi keluar cepat untuk halaman sebelumnya jika berbeda
+            if (currentEl && currentEl !== targetEl && currentEl.classList.contains('active')) {
+                currentEl.classList.remove('active', 'dir-back');
+                currentEl.classList.add('leaving');
+                setTimeout(() => {
+                    currentEl.classList.remove('leaving');
+                }, 240);
+            } else {
+                document.querySelectorAll('.view-section').forEach(sec => {
+                    if (sec !== targetEl) sec.classList.remove('active', 'dir-back', 'leaving');
+                });
+            }
+
+            // Reset & jalankan animasi masuk halaman tujuan
+            targetEl.classList.remove('active', 'dir-back', 'leaving');
+            void targetEl.offsetWidth; // Trigger reflow agar animasi ulang dengan mulus
+            if (isGoingBack) {
+                targetEl.classList.add('dir-back');
+            }
+            targetEl.classList.add('active');
+            currentActiveViewId = toViewId;
+
+            // Animasi halus judul header
+            const titleEl = document.getElementById('appTitle');
+            titleEl.style.opacity = '0';
+            titleEl.style.transform = 'translateY(-4px)';
+            setTimeout(() => {
+                titleEl.innerText = titleText;
+                titleEl.style.opacity = '1';
+                titleEl.style.transform = 'translateY(0)';
+            }, 100);
+
+            document.getElementById('btnHome').style.visibility = showHomeBtn ? 'visible' : 'hidden';
+            document.getElementById('btnSettings').style.visibility = showSettingsBtn ? 'visible' : 'hidden';
+        }
+
+        function showHomeView() {
+            lastActiveView = 'viewHome';
+            switchView('viewHome', 'Daftar Bon', false, true);
+            renderBonList();
+        }
+
+        function showBonView(id) {
+            currentBonId = id;
+            lastActiveView = 'viewBon';
+            loadBonToEditor(id);
+            switchView('viewBon', 'Edit Bon', true, true);
+        }
+
+        function showSettingsView() {
+            updateReceiptPreview();
+            switchView('viewSettings', 'Pengaturan', true, false);
+        }
+
+        function closeSettingsView() {
+            showToast("Pengaturan tampilan & struk disimpan!");
+            if (lastActiveView === 'viewBon' && currentBonId) {
+                showBonView(currentBonId);
+            } else {
+                showHomeView();
+            }
+        }
+
+        /* =========================================================
+           MANAJEMEN DATA BON
+           ========================================================= */
+        function persistBons() {
+            localStorage.setItem('bon_motor_data', JSON.stringify(activeBons));
+        }
+
+        function createNewBon(openImmediately = true) {
+            const newId = 'bon_' + Date.now();
+            const today = new Date().toISOString().split('T')[0];
+            
+            const newBon = {
+                id: newId,
+                storeName: 'JOYO PROKOSO MOTOR',
+                billDate: today,
+                customerName: '',
+                items: [
+                    { name: '', qty: '', price: '' },
+                    { name: '', qty: '', price: '' }
+                ]
+            };
+
+            activeBons.unshift(newBon);
+            persistBons();
+
+            if (openImmediately) {
+                showBonView(newId);
+                showToast("Bon bengkel baru dibuat!");
+            }
+        }
+
+        function renderBonList() {
+            const container = document.getElementById('bonListContainer');
+            const searchKey = document.getElementById('searchBon').value.toLowerCase();
+            container.innerHTML = '';
+
+            const filteredBons = activeBons.filter(b => 
+                (b.customerName && b.customerName.toLowerCase().includes(searchKey)) ||
+                (b.storeName && b.storeName.toLowerCase().includes(searchKey)) ||
+                searchKey === ''
+            );
+
+            if (filteredBons.length === 0) {
+                container.innerHTML = `<div class="empty-state">Belum ada bon servis / tidak ditemukan.</div>`;
+                return;
+            }
+
+            filteredBons.forEach((bon, index) => {
+                let total = 0;
+                let validItemCount = 0;
+                bon.items.forEach(i => {
+                    const q = parseFloat(i.qty) || 0;
+                    const p = parseFloat(i.price) || 0;
+                    if (i.name.trim() !== '' || q > 0) validItemCount++;
+                    total += (q * p);
+                });
+
+                const card = document.createElement('div');
+                card.className = 'bon-card';
+                card.onclick = () => showBonView(bon.id);
+                card.innerHTML = `
+                    <div class="bon-info">
+                        <div class="bon-title">🏍️ ${bon.customerName.trim() ? bon.customerName : 'Pelanggan #' + (index + 1)}</div>
+                        <div class="bon-subtitle">${bon.billDate} • ${validItemCount} item</div>
+                    </div>
+                    <div class="bon-total">${formatRupiah(total)}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function loadBonToEditor(id) {
+            const bon = activeBons.find(b => b.id === id);
+            if (!bon) return;
+
+            document.getElementById('storeName').value = bon.storeName || '';
+            document.getElementById('billDate').value = bon.billDate || '';
+            document.getElementById('customerName').value = bon.customerName || '';
+
+            const container = document.getElementById('itemRowsContainer');
+            container.innerHTML = '';
+
+            if (bon.items.length === 0) {
+                addNewRow();
+            } else {
+                bon.items.forEach(item => {
+                    addNewRow(item.name, item.qty, item.price);
+                });
+            }
+
+            calculateTotal();
+        }
+
+        function saveCurrentBon() {
+            if (!currentBonId) return;
+
+            const bon = activeBons.find(b => b.id === currentBonId);
+            if (!bon) return;
+
+            bon.storeName = document.getElementById('storeName').value;
+            bon.billDate = document.getElementById('billDate').value;
+            bon.customerName = document.getElementById('customerName').value;
+
+            const rows = document.querySelectorAll('#itemRowsContainer tr');
+            const items = [];
+
+            rows.forEach(row => {
+                const name = row.querySelector('.item-nama').value;
+                const qty = row.querySelector('.item-qty').value;
+                const price = row.querySelector('.item-harga').value;
+                items.push({ name, qty, price });
+            });
+
+            bon.items = items;
+            persistBons();
+        }
+
+        function deleteCurrentBon() {
+            if (activeBons.length <= 1) {
+                const bon = activeBons[0];
+                bon.customerName = '';
+                bon.items = [{ name: '', qty: '', price: '' }];
+                persistBons();
+                loadBonToEditor(bon.id);
+                showToast("Bon dibersihkan.");
+                showHomeView();
+                return;
+            }
+
+            activeBons = activeBons.filter(b => b.id !== currentBonId);
+            persistBons();
+            showToast("Bon dihapus.");
+            showHomeView();
+        }
+
+        function changePaperSize() {
+            const size = document.getElementById('paperSize').value;
+            if (size === '58mm') {
+                document.documentElement.style.setProperty('--print-width', '58mm');
+            } else if (size === '80mm') {
+                document.documentElement.style.setProperty('--print-width', '80mm');
+            } else {
+                document.documentElement.style.setProperty('--print-width', '210mm');
+            }
+            updateReceiptPreview();
+        }
+
+        function addNewRow(name = '', qty = '', price = '') {
+            const container = document.getElementById('itemRowsContainer');
+            const tr = document.createElement('tr');
+            const formattedPrice = formatThousand(price);
+
+            tr.innerHTML = `
+                <td class="col-nama">
+                    <input type="text" class="item-nama" placeholder="Oli / Jasa..." value="${name}" oninput="onItemChange()">
+                </td>
+                <td class="col-qty">
+                    <input type="number" class="item-qty" placeholder="0" min="0" inputmode="numeric" value="${qty}" oninput="onItemChange()">
+                </td>
+                <td class="col-harga">
+                    <input type="text" class="item-harga" placeholder="0" inputmode="numeric" value="${formattedPrice}" oninput="onPriceInput(this)">
+                </td>
+                <td class="col-aksi">
+                    <button type="button" class="btn-delete" onclick="removeRow(this)" title="Hapus Baris">&times;</button>
+                </td>
+            `;
+
+            container.appendChild(tr);
+        }
+
+        // Helper: Format angka ke string dengan titik ribuan (contoh: 50000 -> "50.000")
+        function formatThousand(val) {
+            if (val === '' || val === null || val === undefined) return '';
+            const numStr = String(val).replace(/\D/g, '');
+            if (!numStr) return '';
+            return Number(numStr).toLocaleString('id-ID');
+        }
+
+        // Helper: Ambil angka murni dari string berformat titik ribuan (contoh: "50.000" -> 50000)
+        function parseRawNumber(val) {
+            if (!val) return 0;
+            const numStr = String(val).replace(/\D/g, '');
+            return parseFloat(numStr) || 0;
+        }
+
+        // Event handler khusus input harga agar otomatis diberi titik ribuan saat diketik
+        function onPriceInput(input) {
+            const rawDigits = input.value.replace(/\D/g, '');
+            input.value = rawDigits ? Number(rawDigits).toLocaleString('id-ID') : '';
+            onItemChange();
+        }
+
+        function onItemChange() {
+            calculateTotal();
+            saveCurrentBon();
+        }
+
+        function removeRow(button) {
+            const row = button.closest('tr');
+            const container = document.getElementById('itemRowsContainer');
+            
+            if (container.children.length > 1) {
+                row.remove();
+                calculateTotal();
+                saveCurrentBon();
+            } else {
+                const inputs = row.querySelectorAll('input');
+                inputs.forEach(input => input.value = '');
+                calculateTotal();
+                saveCurrentBon();
+            }
+        }
+
+        function formatRupiah(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function calculateTotal() {
+            const rows = document.querySelectorAll('#itemRowsContainer tr');
+            let grandTotal = 0;
+
+            rows.forEach(row => {
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseRawNumber(row.querySelector('.item-harga').value);
+                grandTotal += (qty * price);
+            });
+
+            document.getElementById('grandTotal').innerText = formatRupiah(grandTotal);
+        }
+
+        /* =========================================================
+           GENERATOR FORMAT STRUK BLUETOOTH (3 MODEL OUTPUT)
+           ========================================================= */
+        function buildReceiptData(isPreview = false) {
+            const paperSize = document.getElementById('paperSize').value;
+            const maxChar = (paperSize === '58mm') ? 32 : 48;
+            const style = appSettings.printStyle; // 'classic' | 'modern' | 'compact'
+
+            // Ambil data bon aktif atau data contoh untuk pratinjau
+            let storeName = document.getElementById('storeName').value.trim() || 'JOYO PROKOSO MOTOR';
+            let billDate = document.getElementById('billDate').value || new Date().toISOString().split('T')[0];
+            let customerName = document.getElementById('customerName').value.trim() || 'Umum';
+            let items = [];
+
+            const rows = document.querySelectorAll('#itemRowsContainer tr');
+            rows.forEach(row => {
+                const name = row.querySelector('.item-nama').value.trim();
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseRawNumber(row.querySelector('.item-harga').value);
+                if (name !== '' || qty > 0) {
+                    items.push({ name: name || 'Item', qty, price });
+                }
+            });
+
+            // Jika di halaman pengaturan dan bon masih kosong, pakai contoh item bengkel motor
+            if (isPreview && items.length === 0) {
+                customerName = 'Budi (Vario B 4521 XYZ)';
+                items = [
+                    { name: 'Oli MPX2 0.8L', qty: 1, price: 58000 },
+                    { name: 'Servis Ringan + Injeksi', qty: 1, price: 45000 },
+                    { name: 'Kampas Rem Depan', qty: 1, price: 65000 }
+                ];
+            }
+
+            const singleLine = "-".repeat(maxChar);
+            const doubleLine = "=".repeat(maxChar);
+            const starLine   = "*".repeat(maxChar);
+
+            let previewLines = [];
+            let escCommands = [];
+            const ESC = 0x1B;
+            const GS = 0x1D;
+
+            // Helper untuk menambah teks ke ESC/POS dan Preview sekaligus
+            const centerText = (txt) => {
+                const pad = Math.max(0, Math.floor((maxChar - txt.length) / 2));
+                return " ".repeat(pad) + txt;
+            };
+
+            const padRightLeft = (left, right) => {
+                const space = maxChar - left.length - right.length;
+                return left + " ".repeat(space > 0 ? space : 1) + right;
+            };
+
+            // INIT PRINTER
+            escCommands.push(ESC, 0x40);
+
+            // --- HEADER STRUK ---
+            escCommands.push(ESC, 0x61, 1); // Center
+            if (style === 'modern') {
+                escCommands.push(...encodeText(doubleLine + "\n"));
+                escCommands.push(GS, 0x21, 0x11); // Double Height & Width
+                escCommands.push(...encodeText(storeName.toUpperCase() + "\n"));
+                escCommands.push(GS, 0x21, 0x00);
+                escCommands.push(...encodeText("NOTA SERVIS & SPAREPART\n"));
+                escCommands.push(...encodeText(doubleLine + "\n"));
+
+                previewLines.push(doubleLine);
+                previewLines.push(centerText(storeName.toUpperCase()));
+                previewLines.push(centerText("NOTA SERVIS & SPAREPART"));
+                previewLines.push(doubleLine);
+            } else if (style === 'compact') {
+                escCommands.push(ESC, 0x45, 1); // Bold
+                escCommands.push(...encodeText(storeName.toUpperCase() + "\n"));
+                escCommands.push(ESC, 0x45, 0);
+                escCommands.push(...encodeText(singleLine + "\n"));
+
+                previewLines.push(centerText(storeName.toUpperCase()));
+                previewLines.push(singleLine);
+            } else {
+                // Classic
+                escCommands.push(GS, 0x21, 0x11);
+                escCommands.push(...encodeText(storeName + "\n"));
+                escCommands.push(GS, 0x21, 0x00);
+                escCommands.push(...encodeText(singleLine + "\n"));
+
+                previewLines.push(centerText(storeName));
+                previewLines.push(singleLine);
+            }
+
+            // --- INFO PELANGGAN ---
+            escCommands.push(ESC, 0x61, 0); // Left
+            if (style === 'compact') {
+                const infoLine = `${billDate} | ${customerName}`.slice(0, maxChar);
+                escCommands.push(...encodeText(infoLine + "\n"));
+                escCommands.push(...encodeText(singleLine + "\n"));
+                previewLines.push(infoLine);
+                previewLines.push(singleLine);
+            } else {
+                escCommands.push(...encodeText(`Tgl : ${billDate}\n`));
+                escCommands.push(...encodeText(`Plg : ${customerName}\n`));
+                escCommands.push(...encodeText((style === 'modern' ? doubleLine : singleLine) + "\n"));
+
+                previewLines.push(`Tgl : ${billDate}`);
+                previewLines.push(`Plg : ${customerName}`);
+                previewLines.push(style === 'modern' ? doubleLine : singleLine);
+            }
+
+            // --- DAFTAR ITEM ---
+            let grandTotal = 0;
+            items.forEach((item, idx) => {
+                const subtotal = item.qty * item.price;
+                grandTotal += subtotal;
+
+                if (style === 'compact') {
+                    // 1 baris hemat kertas: "1x Oli MPX2      58.000"
+                    const subStr = subtotal.toLocaleString('id-ID');
+                    const maxNameLen = maxChar - subStr.length - 5;
+                    const shortName = `${item.qty}x ${item.name}`.slice(0, maxNameLen);
+                    const rowStr = padRightLeft(shortName, subStr);
+
+                    escCommands.push(...encodeText(rowStr + "\n"));
+                    previewLines.push(rowStr);
+                } else if (style === 'modern') {
+                    // 2 baris dengan nomor urut & bold nama item
+                    const titleLine = `${idx + 1}. ${item.name}`;
+                    const detailLeft = `   ${item.qty} pcs x Rp ${item.price.toLocaleString('id-ID')}`;
+                    const detailRight = `Rp ${subtotal.toLocaleString('id-ID')}`;
+                    const detailLine = padRightLeft(detailLeft, detailRight);
+
+                    escCommands.push(ESC, 0x45, 1);
+                    escCommands.push(...encodeText(titleLine + "\n"));
+                    escCommands.push(ESC, 0x45, 0);
+                    escCommands.push(...encodeText(detailLine + "\n"));
+
+                    previewLines.push(titleLine);
+                    previewLines.push(detailLine);
+                } else {
+                    // Classic
+                                      const qtyPriceText = `  ${item.qty} x ${item.price.toLocaleString('id-ID')}`;
+                    const subtotalText = subtotal.toLocaleString('id-ID');
+                    const detailLine = padRightLeft(qtyPriceText, subtotalText);
+
+                    escCommands.push(...encodeText(`${item.name}\n`));
+                    escCommands.push(...encodeText(`${detailLine}\n`));
+
+                    previewLines.push(item.name);
+                    previewLines.push(detailLine);
+                }
+            });
+
+            // --- TOTAL BAYAR ---
+            escCommands.push(...encodeText((style === 'modern' ? doubleLine : singleLine) + "\n"));
+            previewLines.push(style === 'modern' ? doubleLine : singleLine);
+
+            if (style === 'compact') {
+                const totLine = padRightLeft("TOTAL BAYAR:", `Rp ${grandTotal.toLocaleString('id-ID')}`);
+                escCommands.push(ESC, 0x45, 1);
+                escCommands.push(...encodeText(totLine + "\n"));
+                escCommands.push(ESC, 0x45, 0);
+                previewLines.push(totLine);
+            } else {
+                escCommands.push(ESC, 0x61, 2); // Right align
+                escCommands.push(GS, 0x21, 0x01); // Double height
+                const totalStr = `TOTAL: Rp ${grandTotal.toLocaleString('id-ID')}`;
+                escCommands.push(...encodeText(totalStr + "\n"));
+                escCommands.push(GS, 0x21, 0x00);
+
+                previewLines.push(padRightLeft("", totalStr));
+            }
+
+            if (style === 'modern') {
+                escCommands.push(ESC, 0x61, 0);
+                escCommands.push(...encodeText(starLine + "\n"));
+                previewLines.push(starLine);
+            }
+
+            // --- FOOTER ---
+            const footerMsg = appSettings.footerText || "Terima Kasih";
+            escCommands.push(ESC, 0x61, 1); // Center
+            if (style === 'compact') {
+                escCommands.push(...encodeText(`${footerMsg}\n\n\n`));
+                previewLines.push(centerText(footerMsg));
+            } else {
+                escCommands.push(...encodeText(`\n${footerMsg}\nBarang yang sudah dibeli\ntidak dapat ditukar\n\n\n\n`));
+                previewLines.push("");
+                previewLines.push(centerText(footerMsg));
+                previewLines.push(centerText("Barang yang sudah dibeli"));
+                previewLines.push(centerText("tidak dapat ditukar"));
+            }
+
+            return {
+                commands: escCommands,
+                previewText: previewLines.join("\n")
+            };
+        }
+
+        function updateReceiptPreview() {
+            const previewEl = document.getElementById('receiptPreview');
+            if (!previewEl) return;
+            const { previewText } = buildReceiptData(true);
+            previewEl.textContent = previewText;
+        }
+
+        /* =========================================================
+           BLUETOOTH CONNECTION & DIRECT PRINT
+           ========================================================= */
+        async function connectBluetooth() {
+            if (!navigator.bluetooth) {
+                showToast("Web Bluetooth tidak didukung di browser ini. Gunakan Chrome di Android.");
+                return;
+            }
+
+            try {
+                showToast("Mencari Printer Bluetooth...");
+                
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: [
+                        '000018f0-0000-1000-8000-00805f9b34fb',
+                        'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+                        '49535343-fe7d-4350-87b2-114470967354'
+                    ]
+                });
+
+                bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+                const server = await bluetoothDevice.gatt.connect();
+                showToast("Terhubung. Mencari saluran printer...");
+
+                const services = await server.getPrimaryServices();
+                for (const service of services) {
+                    const characteristics = await service.getCharacteristics();
+                    for (const char of characteristics) {
+                        if (char.properties.write || char.properties.writeWithoutResponse) {
+                            printCharacteristic = char;
+                            break;
+                        }
+                    }
+                    if (printCharacteristic) break;
+                }
+
+                if (printCharacteristic) {
+                    document.getElementById('btDot').classList.add('connected');
+                    document.getElementById('btStatusText').innerText = bluetoothDevice.name || "Printer Terhubung";
+                    showToast("Printer Bluetooth berhasil terhubung!");
+                } else {
+                    showToast("Gagal menemukan saluran tulis printer.");
+                }
+
+            } catch (error) {
+                console.error(error);
+                showToast("Koneksi Bluetooth dibatalkan / gagal.");
+            }
+        }
+
+        function onDisconnected() {
+            document.getElementById('btDot').classList.remove('connected');
+            document.getElementById('btStatusText').innerText = "Bluetooth Terputus";
+            printCharacteristic = null;
+            showToast("Printer Bluetooth terputus.");
+        }
+
+        async function printDirectBluetooth() {
+            if (!printCharacteristic) {
+                showToast("Printer Bluetooth belum terhubung! Klik 'Sambung Printer' dahulu.");
+                return;
+            }
+
+            saveCurrentBon();
+            const { commands } = buildReceiptData(false);
+
+            try {
+                const data = new Uint8Array(commands);
+                const chunkSize = 100;
+                for (let i = 0; i < data.length; i += chunkSize) {
+                    const chunk = data.slice(i, i + chunkSize);
+                    await printCharacteristic.writeValue(chunk);
+                }
+                showToast("Bon berhasil dicetak ke Printer Bluetooth!");
+            } catch (error) {
+                console.error(error);
+                showToast("Gagal mengirim data cetak ke Bluetooth.");
+            }
+        }
+
+        function encodeText(text) {
+            const encoder = new TextEncoder();
+            return Array.from(encoder.encode(text));
+        }
+
+        /* =========================================================
+           EKSPOR EXCEL (CSV)
+           ========================================================= */
+        function exportToCSV() {
+            saveCurrentBon();
+
+            const storeName = document.getElementById('storeName').value || 'Bengkel';
+            const billDate = document.getElementById('billDate').value || '-';
+            const customerName = document.getElementById('customerName').value || 'Umum';
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += `Nama Bengkel,${sanitizeCSV(storeName)}\n`;
+            csvContent += `Tanggal,${sanitizeCSV(billDate)}\n`;
+            csvContent += `Pelanggan / Motor,${sanitizeCSV(customerName)}\n\n`;
+            csvContent += "Jasa / Sparepart,Jumlah,Harga Satuan,Subtotal\n";
+
+            const rows = document.querySelectorAll('#itemRowsContainer tr');
+            let grandTotal = 0;
+            let hasItems = false;
+
+            rows.forEach(row => {
+                const name = row.querySelector('.item-nama').value.trim();
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseRawNumber(row.querySelector('.item-harga').value);
+                const subtotal = qty * price;
+
+                if (name !== '' || qty > 0 || price > 0) {
+                    hasItems = true;
+                    grandTotal += subtotal;
+                    csvContent += `${sanitizeCSV(name)},${qty},${price},${subtotal}\n`;
+                }
+            });
+
+            if (!hasItems) {
+                showToast("Belum ada data item yang diisi untuk diekspor!");
+                return;
+            }
+
+            csvContent += `,,TOTAL,${grandTotal}\n`;
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            const fileName = `Bon_${storeName.replace(/[^a-zA-Z0-9]/g, "_")}_${billDate}.csv`;
+
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function sanitizeCSV(text) {
+            if (text.includes(',') || text.includes('"') || text.includes('\n')) {
+                return `"${text.replace(/"/g, '""')}"`;
+            }
+            return text;
+        }
+    </script>
+</body>
+</html>
